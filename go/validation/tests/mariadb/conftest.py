@@ -76,7 +76,9 @@ def dsn(
     Example: my:password@tcp(localhost:3306)/db
     """
     username, password = creds
-    return f"{username}:{password}@tcp({mariadb_host}:{mariadb_port})/{mariadb_database}"
+    return (
+        f"{username}:{password}@tcp({mariadb_host}:{mariadb_port})/{mariadb_database}"
+    )
 
 
 @pytest.fixture(scope="session")

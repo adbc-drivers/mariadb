@@ -21,6 +21,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"regexp"
 	"strings"
 	"testing"
 	"time"
@@ -31,7 +32,6 @@ import (
 	"github.com/apache/arrow-adbc/go/adbc"
 	"github.com/apache/arrow-go/v18/arrow"
 	"github.com/apache/arrow-go/v18/arrow/array"
-	"github.com/apache/arrow-go/v18/arrow/extensions"
 	"github.com/apache/arrow-go/v18/arrow/memory"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -213,10 +213,14 @@ func (q *MariaDBQuirks) SampleTableSchemaMetadata(tblName string, dt arrow.DataT
 		metadata["sql.database_type_name"] = "bigint"
 		metadata["sql.precision"] = "19"
 		metadata["sql.scale"] = "0"
+		metadata["mariadb.column_type"] = "bigint(20)"
 	case arrow.STRING:
 		metadata["sql.column_name"] = "strings"
 		metadata["sql.database_type_name"] = "varchar"
 		metadata["sql.length"] = "255"
+		metadata["mariadb.column_type"] = "varchar(255)"
+		metadata["mariadb.character_set"] = "utf8mb4"
+		metadata["mariadb.collation"] = "utf8mb4_uca1400_ai_ci"
 	case arrow.FLOAT32:
 		metadata["sql.column_name"] = "floats"
 		metadata["sql.database_type_name"] = "float"
@@ -261,7 +265,8 @@ func (q *MariaDBQuirks) GetMetadata(code adbc.InfoCode) any {
 	case adbc.InfoDriverArrowVersion:
 		return "(unknown or development build)"
 	case adbc.InfoVendorVersion:
-		return "12.2.2-MariaDB (MariaDB Server)"
+		// The suffix depends on the build, e.g. "-ubu2404 (mariadb.org binary distribution)"
+		return regexp.MustCompile(`^12\.2\.[0-9]+-MariaDB`)
 	case adbc.InfoVendorArrowVersion:
 		return "(unknown or development build)"
 	case adbc.InfoDriverADBCVersion:
@@ -656,17 +661,18 @@ func (s *MariaDBTests) TestSelect() {
 			expected: `[{"greeting": "hello world"}]`,
 		},
 		{
+			// MariaDB stores JSON as LONGTEXT and reports it as such in result
+			// sets; only GetTableSchema can recover the JSON type.
 			name:  "json",
 			query: "SELECT json_col AS data FROM test_types",
 			schema: arrow.NewSchema([]arrow.Field{
 				{
 					Name:     "data",
-					Type:     func() arrow.DataType { t, _ := extensions.NewJSONType(arrow.BinaryTypes.String); return t }(),
+					Type:     arrow.BinaryTypes.String,
 					Nullable: true,
 					Metadata: arrow.MetadataFrom(map[string]string{
 						"sql.column_name":        "data",
-						"sql.database_type_name": "JSON",
-						"mariadb.native_type":    "json",
+						"sql.database_type_name": "TEXT",
 					}),
 				},
 			}, nil),
