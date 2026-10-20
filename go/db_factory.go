@@ -114,8 +114,10 @@ func (f *MariaDBDBFactory) BuildMariaDBDSN(opts map[string]string) (string, erro
 	// URI schemes are deliberately strict.  The underlying protocol library is
 	// shared with MySQL, but accepting mysql:// here makes configuration errors
 	// very hard to spot and misrepresents the server this driver targets.
-	if parsed, err := url.Parse(baseURI); err == nil && parsed.Scheme != "" {
-		return "", fmt.Errorf("unsupported URI scheme %q: expected mariadb://", parsed.Scheme)
+	// Only "scheme://" counts as a URI: a native DSN such as
+	// "user:pass@tcp(host)/db" would otherwise parse with scheme "user".
+	if scheme, _, found := strings.Cut(baseURI, "://"); found {
+		return "", fmt.Errorf("unsupported URI scheme %q: expected mariadb://", scheme)
 	}
 
 	if username == "" && password == "" {

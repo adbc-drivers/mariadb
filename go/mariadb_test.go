@@ -1322,6 +1322,17 @@ func TestURIParsing(t *testing.T) {
 			shouldError:   true,
 			errorContains: `unsupported URI scheme "mysql": expected mariadb://`,
 		},
+		// Native DSNs must not be mistaken for a URI scheme ("user:" looks like one)
+		{
+			name:        "native dsn with password",
+			mariadbURI:  "user:pass@tcp(localhost:3306)/testdb",
+			expectedDSN: "user:pass@tcp(localhost:3306)/testdb",
+		},
+		{
+			name:        "minimal native dsn with password",
+			mariadbURI:  "user:pass@/",
+			expectedDSN: "user:pass@/",
+		},
 		{
 			name:          "invalid socket path encoding",
 			mariadbURI:    "mariadb://user:pass@%ZZ%invalid/testdb",
