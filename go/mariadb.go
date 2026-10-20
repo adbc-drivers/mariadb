@@ -675,7 +675,7 @@ func (m *mariaDBTypeConverter) ConvertArrowToGo(arrowArray arrow.Array, index in
 			dimension := int(a.DataType().(*arrow.FixedSizeListType).Len())
 			raw := make([]byte, dimension*4)
 			start := index * dimension
-			for i := 0; i < dimension; i++ {
+			for i := range dimension {
 				binary.LittleEndian.PutUint32(raw[i*4:], math.Float32bits(values.Value(start+i)))
 			}
 			return raw, nil
@@ -881,9 +881,10 @@ func countPlaceholders(query string) int {
 			}
 		case singleQuoted, doubleQuoted, backtickQuoted:
 			quote := byte('\'')
-			if state == doubleQuoted {
+			switch state {
+			case doubleQuoted:
 				quote = '"'
-			} else if state == backtickQuoted {
+			case backtickQuoted:
 				quote = '`'
 			}
 			if ch == '\\' && state != backtickQuoted && i+1 < len(query) {

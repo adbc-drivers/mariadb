@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import functools
+import re
 from pathlib import Path
 
 from adbc_drivers_validation import model, quirks
@@ -23,7 +24,8 @@ class MariaDBQuirks(model.DriverQuirks):
     driver = "adbc_driver_mariadb"
     driver_name = "ADBC Driver Foundry Driver for MariaDB"
     vendor_name = "MariaDB"
-    vendor_version = "12.2.2-MariaDB (MariaDB Server)"
+    # The suffix depends on the build, e.g. "-ubu2404 (mariadb.org binary distribution)"
+    vendor_version = re.compile(r"12\.2\.[0-9]+-MariaDB")
     short_version = "12.2"
     features = model.DriverFeatures(
         connection_get_table_schema=True,
@@ -38,7 +40,7 @@ class MariaDBQuirks(model.DriverQuirks):
         statement_bulk_ingest_schema=False,
         statement_bulk_ingest_temporary=True,
         statement_execute_schema=True,
-        statement_get_parameter_schema=False,
+        statement_get_parameter_schema=True,
         statement_prepare=True,
         statement_rows_affected=True,
         statement_rows_affected_ddl=True,

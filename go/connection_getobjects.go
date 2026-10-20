@@ -233,7 +233,7 @@ func (c *mariadbConnectionImpl) GetObjects(ctx context.Context, depth adbc.Objec
 // addTableConstraints populates the standard ADBC table_constraints list.
 // MariaDB databases are ADBC catalogs and have an empty ADBC schema.
 func (c *mariadbConnectionImpl) addTableConstraints(ctx context.Context, infos []driverbase.GetObjectsInfo,
-	catalog, tableName *string, tableType []string) error {
+	catalog, tableName *string, tableType []string) (err error) {
 	tables := make(map[string]*driverbase.TableInfo)
 	for infoIdx := range infos {
 		if infos[infoIdx].CatalogName == nil {
@@ -290,7 +290,9 @@ func (c *mariadbConnectionImpl) addTableConstraints(ctx context.Context, infos [
 	if err != nil {
 		return c.ErrorHelper.WrapIO(err, "failed to query table constraints")
 	}
-	defer rows.Close()
+	defer func() {
+		err = errors.Join(err, rows.Close())
+	}()
 
 	var currentTable *driverbase.TableInfo
 	var currentConstraint *driverbase.ConstraintInfo

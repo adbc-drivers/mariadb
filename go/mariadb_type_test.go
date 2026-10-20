@@ -27,8 +27,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func int64ptr(value int64) *int64 { return &value }
-
 func TestMariaDBUUIDConversion(t *testing.T) {
 	converter := makeTypeConverter(zeroDatetimeBehaviorError)
 	typeInfo := sqlwrapper.ColumnType{
@@ -74,9 +72,9 @@ func TestMariaDBNativeTypeMappings(t *testing.T) {
 		{"json", sqlwrapper.ColumnType{Name: "doc", DatabaseTypeName: "JSON"}, mustJSONType(t), metaKeyMariaDBNativeType, "json"},
 		{"year", sqlwrapper.ColumnType{Name: "y", DatabaseTypeName: "YEAR"}, arrow.PrimitiveTypes.Int16, metaKeyMariaDBNativeType, "year"},
 		{"uint64", sqlwrapper.ColumnType{Name: "n", DatabaseTypeName: "BIGINT UNSIGNED"}, arrow.PrimitiveTypes.Uint64, sqlwrapper.MetaKeyDatabaseTypeName, "BIGINT UNSIGNED"},
-		{"decimal256_fallback", sqlwrapper.ColumnType{Name: "n", DatabaseTypeName: "DECIMAL", Precision: int64ptr(65), Scale: int64ptr(30)}, arrow.BinaryTypes.String, metaKeyArrowFallback, "string"},
-		{"binary", sqlwrapper.ColumnType{Name: "b", DatabaseTypeName: "VARBINARY", Length: int64ptr(20)}, arrow.BinaryTypes.Binary, sqlwrapper.MetaKeyLength, "20"},
-		{"text", sqlwrapper.ColumnType{Name: "s", DatabaseTypeName: "VARCHAR", Length: int64ptr(20)}, arrow.BinaryTypes.String, sqlwrapper.MetaKeyLength, "20"},
+		{"decimal256_fallback", sqlwrapper.ColumnType{Name: "n", DatabaseTypeName: "DECIMAL", Precision: new(int64(65)), Scale: new(int64(30))}, arrow.BinaryTypes.String, metaKeyArrowFallback, "string"},
+		{"binary", sqlwrapper.ColumnType{Name: "b", DatabaseTypeName: "VARBINARY", Length: new(int64(20))}, arrow.BinaryTypes.Binary, sqlwrapper.MetaKeyLength, "20"},
+		{"text", sqlwrapper.ColumnType{Name: "s", DatabaseTypeName: "VARCHAR", Length: new(int64(20))}, arrow.BinaryTypes.String, sqlwrapper.MetaKeyLength, "20"},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
@@ -100,7 +98,7 @@ func mustJSONType(t *testing.T) arrow.DataType {
 func TestMariaDBVectorConversion(t *testing.T) {
 	converter := makeTypeConverter(zeroDatetimeBehaviorError)
 	typeInfo := sqlwrapper.ColumnType{
-		Name: "embedding", DatabaseTypeName: "VECTOR", Length: int64ptr(12),
+		Name: "embedding", DatabaseTypeName: "VECTOR", Length: new(int64(12)),
 	}
 
 	dataType, _, metadata, err := converter.ConvertRawColumnType(typeInfo)
@@ -174,7 +172,7 @@ func TestMariaDBTimestampPrecision(t *testing.T) {
 		4: arrow.Microsecond, 6: arrow.Microsecond,
 	} {
 		type_, _, _, err := converter.ConvertRawColumnType(sqlwrapper.ColumnType{
-			Name: "created", DatabaseTypeName: "TIMESTAMP", Precision: int64ptr(precision),
+			Name: "created", DatabaseTypeName: "TIMESTAMP", Precision: new(precision),
 		})
 		require.NoError(t, err)
 		require.Equal(t, unit, type_.(*arrow.TimestampType).Unit)
@@ -185,7 +183,7 @@ func TestMariaDBTimestampPrecision(t *testing.T) {
 func TestMariaDBTimeIsSignedDuration(t *testing.T) {
 	converter := makeTypeConverter(zeroDatetimeBehaviorError)
 	type_, _, metadata, err := converter.ConvertRawColumnType(sqlwrapper.ColumnType{
-		Name: "elapsed", DatabaseTypeName: "TIME", Precision: int64ptr(6),
+		Name: "elapsed", DatabaseTypeName: "TIME", Precision: new(int64(6)),
 	})
 	require.NoError(t, err)
 	require.Equal(t, &arrow.DurationType{Unit: arrow.Microsecond}, type_)

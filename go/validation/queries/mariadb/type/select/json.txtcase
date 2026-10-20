@@ -12,6 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Result sets report JSON columns as LONGTEXT, so queries return plain
+// strings. GetTableSchema recovers the JSON type from the JSON_VALID
+// check constraint and returns the arrow.json extension type.
+
 // part: expected_schema
 {
     "format": "+s",
@@ -20,6 +24,21 @@
             "name": "res",
             "format": "u",
             "flags": ["nullable"]
+        }
+    ]
+}
+
+// part: catalog_schema
+{
+    "format": "+s",
+    "children": [
+        {
+            "name": "res",
+            "format": "u",
+            "flags": ["nullable"],
+            "metadata": {
+                "ARROW:extension:name": "arrow.json"
+            }
         }
     ]
 }

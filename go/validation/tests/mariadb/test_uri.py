@@ -131,10 +131,13 @@ def test_uri_default_port(
     driver: model.DriverQuirks,
     driver_path: str,
     mariadb_host: str,
+    mariadb_port: str,
     mariadb_database: str,
     creds: tuple[str, str],
 ) -> None:
     """Tests that a URI without a port connects using default 3306."""
+    if mariadb_port != "3306":
+        pytest.skip("test server is not listening on the default port")
     username, password = creds
 
     no_port_uri = f"mariadb://{username}:{password}@{mariadb_host}/{mariadb_database}"
@@ -277,12 +280,15 @@ def test_basic_dsn_connection(
 def test_minimal_dsn_with_creds(
     driver: model.DriverQuirks,
     driver_path: str,
+    mariadb_port: str,
     creds: tuple[str, str],
 ) -> None:
     """
     Test that a minimal DSN ('user:pass@/') is valid.
     This DSN implies a connection to the default 'tcp(localhost:3306)'.
     """
+    if mariadb_port != "3306":
+        pytest.skip("test server is not listening on the default port")
     username, password = creds
 
     minimal_uri = f"{username}:{password}@/"
@@ -304,6 +310,8 @@ def test_minimal_dsn_with_creds(
 def test_plain_host_with_creds_options(
     driver: model.DriverQuirks,
     driver_path: str,
+    mariadb_host: str,
+    mariadb_port: str,
     creds: tuple[str, str],
 ) -> None:
     """
@@ -314,7 +322,11 @@ def test_plain_host_with_creds_options(
 
     with adbc_driver_manager.dbapi.connect(
         driver=driver_path,
-        db_kwargs={"uri": "localhost", "username": username, "password": password},
+        db_kwargs={
+            "uri": f"{mariadb_host}:{mariadb_port}",
+            "username": username,
+            "password": password,
+        },
     ) as conn:
         with conn.cursor() as cursor:
             cursor.execute("SELECT 1")
