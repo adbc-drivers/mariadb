@@ -1,4 +1,5 @@
 ---
+# Copyright (c) 2026 ADBC Drivers Contributors
 # Copyright (c) 2026 lefred - MariaDB Foundation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

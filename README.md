@@ -17,8 +17,9 @@
 
 # ADBC Driver for MariaDB
 
-Afiliated with the MariaDB Foundation.
+Affiliated with the MariaDB Foundation.
 
+An [ADBC driver](https://arrow.apache.org/adbc/) for MariaDB.
 
 ## Installation
 
@@ -28,20 +29,17 @@ installed by any tool that supports [ADBC](https://arrow.apache.org/adbc/)
 Driver Manifests, such as [dbc](https://columnar.tech/dbc):
 
 ```sh
-dbc install --no-verify <path to>/mariadb_linux_amd64_v0.1.0.tar.gz
-
-dbc list
-DRIVER  VERSION LEVEL LOCATION                       
-                                                     
-mariadb 0.1.0   user  /home/fred/.config/adbc/drivers
+dbc install mariadb
 ```
+
+See [Building](#building) if you would rather build the drivers yourself.
 
 ## Usage with DuckDB
 
 Create the adbc profile for your MariaDB Server:
 
 ```
-$ cat /home/fred/.config/adbc/profiles/mydb.toml
+$ cat ~/.config/adbc/profiles/mydb.toml
 profile_version = 1
 driver = "mariadb"
 
@@ -52,10 +50,10 @@ uri="mariadb://msandbox:msandbox@127.0.0.1:13100/test"
 You can now test it with DuckDB:
 
 ```
-$ duckdb 
+$ duckdb
 DuckDB v1.5.4 (Variegata)
 Enter ".help" for usage hints.
-memroy D INSTALL adbc FROM community;
+memory D INSTALL adbc FROM community;
 memory D LOAD adbc;
 memory D ATTACH 'profile://mydb' AS mariadb (
                TYPE adbc,
@@ -94,3 +92,10 @@ memory D SELECT * FROM mariadb.main.t2;
 └──────────────────────────────────────┴─────────────┴──────────────────────────┘
 ```
 
+## Building
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
