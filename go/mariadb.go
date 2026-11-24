@@ -269,29 +269,30 @@ func (m *mariaDBTypeConverter) ConvertRawColumnType(colType sqlwrapper.ColumnTyp
 		metadata := arrow.MetadataFrom(metadataMap)
 		return arrow.BinaryTypes.String, nullable, metadata, nil
 
-	case "TIMESTAMP":
-		var timestampType arrow.DataType
+	case "DATETIME", "TIMESTAMP":
 		metadataMap := map[string]string{
 			sqlwrapper.MetaKeyDatabaseTypeName: colType.DatabaseTypeName,
 			sqlwrapper.MetaKeyColumnName:       colType.Name,
 		}
 
+		// No precision info available: default to microseconds (MariaDB's maximum).
+		timestampType := &arrow.TimestampType{Unit: arrow.Microsecond}
 		if colType.Precision != nil {
 			precision := *colType.Precision
 			metadataMap[sqlwrapper.MetaKeyFractionalSecondsPrecision] = fmt.Sprintf("%d", precision)
-			var timeUnit arrow.TimeUnit
+			// Round the unit up so no fractional digits are lost; the shared
+			// sqlwrapper converter rounds down (e.g. DATETIME(5) -> ms).
 			switch {
 			case precision <= 0:
-				timeUnit = arrow.Second
+				timestampType.Unit = arrow.Second
 			case precision <= 3:
-				timeUnit = arrow.Millisecond
-			default:
-				timeUnit = arrow.Microsecond
+				timestampType.Unit = arrow.Millisecond
 			}
-			timestampType = &arrow.TimestampType{Unit: timeUnit, TimeZone: "UTC"}
-		} else {
-			// No precision info available, default to microseconds (most common)
-			timestampType = &arrow.TimestampType{Unit: arrow.Microsecond, TimeZone: "UTC"}
+		}
+
+		// DATETIME is timezone-naive; TIMESTAMP is stored as UTC.
+		if typeName == "TIMESTAMP" {
+			timestampType.TimeZone = "UTC"
 		}
 
 		metadata := arrow.MetadataFrom(metadataMap)
