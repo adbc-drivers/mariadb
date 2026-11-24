@@ -15,4 +15,4 @@
 // part: metadata
 
 [tags]
-sql-type-name = "TEXT"
+sql-type-name = "LONGTEXT"

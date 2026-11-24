@@ -43,6 +43,8 @@ func (m MariaDBErrorInspector) InspectError(err error, defaultStatus adbc.Status
 			status = adbc.StatusAlreadyExists
 		case 1007: // ER_DB_CREATE_EXISTS
 			status = adbc.StatusAlreadyExists
+		case 1136: // ER_WRONG_VALUE_COUNT_ON_ROW (ingest schema mismatch)
+			status = adbc.StatusAlreadyExists
 		case 1062: // ER_DUP_ENTRY
 			status = adbc.StatusIntegrity
 		case 1451: // ER_ROW_IS_REFERENCED_2 (foreign key constraint)

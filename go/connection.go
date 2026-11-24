@@ -552,12 +552,14 @@ func (c *mariadbConnectionImpl) arrowToMariaDBType(arrowType arrow.DataType, nul
 		mariadbType = "FLOAT"
 	case *arrow.Float64Type:
 		mariadbType = "DOUBLE"
-	case *arrow.StringType:
-		mariadbType = "TEXT"
-	case *arrow.BinaryType, *arrow.FixedSizeBinaryType, *arrow.BinaryViewType:
-		mariadbType = "BLOB"
-	case *arrow.LargeBinaryType:
+	// Use the LONG* variants so values larger than TEXT/BLOB's 64 KiB limit
+	// can be ingested.
+	case *arrow.StringType, *arrow.LargeStringType, *arrow.StringViewType:
+		mariadbType = "LONGTEXT"
+	case *arrow.BinaryType, *arrow.LargeBinaryType, *arrow.BinaryViewType:
 		mariadbType = "LONGBLOB"
+	case *arrow.FixedSizeBinaryType:
+		mariadbType = "BLOB"
 	case *arrow.Date32Type:
 		mariadbType = "DATE"
 	case *arrow.TimestampType:
