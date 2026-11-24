@@ -263,7 +263,7 @@ func (q *MariaDBQuirks) GetMetadata(code adbc.InfoCode) any {
 	case adbc.InfoDriverVersion:
 		return "(unknown or development build)"
 	case adbc.InfoDriverArrowVersion:
-		return "v18.8.0"
+		return "v18.9.0"
 	case adbc.InfoVendorVersion:
 		// The suffix depends on the build, e.g. "-ubu2404 (mariadb.org binary distribution)"
 		return regexp.MustCompile(`^12\.2\.[0-9]+-MariaDB`)
